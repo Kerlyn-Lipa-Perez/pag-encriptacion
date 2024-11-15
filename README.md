@@ -19,14 +19,17 @@ Inside of your Astro project, you'll see the following folders and files:
 ```text
 /
 ├── public/
-│   └── favicon.svg
+│   └── 
 ├── src/
 │   ├── components/
-│   │   └── Card.astro
+│   │   └── EncrytionFrom.tsx
+│   │   └──
 │   ├── layouts/
 │   │   └── Layout.astro
 │   └── pages/
-│       └── index.astro
+│   │   └── index.astro
+│   └── styles/
+│       └── global.css
 └── package.json
 ```
 
