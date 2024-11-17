@@ -7,28 +7,102 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Lock, Unlock, Copy, Key } from 'lucide-react';
 
+// Diccionario para símbolos astronómicos
+const simbolos_astronomicos : { [key: string]: string }= {
+    'A': '☉', 'a': '☀',
+    'B': '☽', 'b': '☾',
+    'C': '♂', 'c': '⚥',
+    'D': '♀', 'd': '⚢',
+    'E': '♃', 'e': '⚡',
+    'F': '♄', 'f': '⚪',
+    'G': '♅', 'g': '⚩',
+    'H': '♆', 'h': '⚔',
+    'I': '♇', 'i': '⚕',
+    'J': '☿', 'j': '⚜',
+    'K': '♁', 'k': '⚝',
+    'L': '☊', 'l': '⚬',
+    'M': '☋', 'm': '⚘',
+    'N': '⚳', 'n': '⚴',
+    'Ñ': '⚷', 'ñ': '⚸',
+    'O': '⚵', 'o': '⚶',
+    'P': '⚷', 'p': '⚸',
+    'Q': '⚺', 'q': '⚻',
+    'R': '⚼', 'r': '⚽',
+    'S': '⛢', 's': '⛣',
+    'T': '⛤', 't': '⛥',
+    'U': '⛦', 'u': '⛧',
+    'V': '⛨', 'v': '⛩',
+    'W': '⛪', 'w': '⛰',
+    'X': '⛯', 'x': '⛮',
+    'Y': '⛬', 'y': '⛭',
+    'Z': '⛱', 'z': '⛲',
+    '0': '⛳', '1': '⛴', 
+    '2': '⛵', '3': '⛶', 
+    '4': '⛷', '5': '⛸', 
+    '6': '⛹', '7': '⛺', 
+    '8': '⛻', '9': '⛼',
+    '+': '⚝', '!': '⚡', '?': '⚜', '.': '⛾', ',': '⛿'
+}
 
+  /**
+   * 
+   * 
+   * 
+   */
 
 export function EncryptionForm() {
+
     const [message, setMessage] = useState('');
     const [key, setKey] = useState('');
     const [result, setResult] = useState('');
     const { toast } = useToast();
     
+
+
+    /**
+   * 
+   * @param text "Texto a encriptar"
+   * @param key  "LLave de encriptación"
+   * @returns 
+   */
     const encrypt = (text: string, key: string) => {
     let result = '';
 
+    // Aplicar XOR en cada carácter del texto
     for (let i = 0; i < text.length; i++) {
       const charCode = text.charCodeAt(i);
       const keyChar = key.charCodeAt(i % key.length);
       result += String.fromCharCode(charCode ^ keyChar);
     }
-    return btoa(result);
+
+    // Codificar resultado en Base64
+    const base64Encoded = btoa(result);
+
+    // Transformar caracteres a símbolos astronómicos usando el diccionario
+    let encryptedWithSymbols = '';
+    for (const char of base64Encoded) {
+      encryptedWithSymbols += simbolos_astronomicos[char] || char; // Mantener el carácter si no tiene mapeo
+    }
+
+    return encryptedWithSymbols;
   };
 
   const decrypt = (encoded: string, key: string) => {
     try {
-      const text = atob(encoded);
+      // Revertir los símbolos astronómicos al texto original
+      const reversedSimbolos = Object.fromEntries(
+        Object.entries(simbolos_astronomicos).map(([k, v]) => [v, k])
+      );
+
+      let base64Decoded = '';
+      for (const char of encoded) {
+        base64Decoded += reversedSimbolos[char] || char; // Mantener el carácter si no tiene mapeo
+      }
+
+      // Decodificar de Base64
+      const text = atob(base64Decoded);
+
+      // Revertir la operación XOR
       let result = '';
       for (let i = 0; i < text.length; i++) {
         const charCode = text.charCodeAt(i);
@@ -37,10 +111,13 @@ export function EncryptionForm() {
       }
       return result;
     } catch {
-      return 'Invalid encrypted message';
+      return 'Mensaje encriptado inválido';
     }
   };
 
+  /**
+   * 
+   */
   const handleCopy = () => {
     navigator.clipboard.writeText(result);
     toast({
@@ -53,7 +130,7 @@ export function EncryptionForm() {
     if (!message || !key) {
       toast({
         title: "Falta información",
-        description: "Please provide both message and key.",
+        description: "Ingrese ambos mensaje y llave.",
         variant: "destructive",
       });
       return;
@@ -76,38 +153,40 @@ export function EncryptionForm() {
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="encrypt">
               <Lock className="w-4 h-4 mr-2" />
-              Encrypt
+              Encriptar
             </TabsTrigger>
             <TabsTrigger value="decrypt">
               <Unlock className="w-4 h-4 mr-2" />
-              Decrypt
+              Desencriptar
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="encrypt">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="message-encrypt">Message to Encrypt</Label>
+                <Label htmlFor="message-encrypt">Mensaje a encriptar</Label>
                 <Input
                   id="message-encrypt"
-                  placeholder="Enter your secret message..."
+                  placeholder="Ingrese su mensaje secreto"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="mt-1.5"
+                  required
                 />
               </div>
 
               <div>
                 <Label htmlFor="key-encrypt" className="flex items-center gap-2">
                   <Key className="w-4 h-4" />
-                  Encryption Key
+                  Llave de encriptacion
                 </Label>
                 <Input
                   id="key-encrypt"
-                  placeholder="Enter your secret key..."
+                  placeholder="Ingrese su llave secreta"
                   value={key}
                   onChange={(e) => setKey(e.target.value)}
                   className="mt-1.5"
+                  required
                 />
               </div>
 
@@ -116,7 +195,7 @@ export function EncryptionForm() {
                 className="w-full"
               >
                 <Lock className="w-4 h-4 mr-2" />
-                Encrypt Message
+                Encriptar mensaje
               </Button>
             </div>
           </TabsContent>
@@ -124,10 +203,10 @@ export function EncryptionForm() {
           <TabsContent value="decrypt">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="message-decrypt">Encrypted Message</Label>
+                <Label htmlFor="message-decrypt">Mensaje encriptado</Label>
                 <Input
                   id="message-decrypt"
-                  placeholder="Enter the encrypted message..."
+                  placeholder="Ingrese el mensaje encriptado"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="mt-1.5"
@@ -137,11 +216,11 @@ export function EncryptionForm() {
               <div>
                 <Label htmlFor="key-decrypt" className="flex items-center gap-2">
                   <Key className="w-4 h-4" />
-                  Decryption Key
+                  Llave de desencriptación
                 </Label>
                 <Input
                   id="key-decrypt"
-                  placeholder="Enter your secret key..."
+                  placeholder="Ingrese su llave secreta"
                   value={key}
                   onChange={(e) => setKey(e.target.value)}
                   className="mt-1.5"
@@ -153,7 +232,7 @@ export function EncryptionForm() {
                 className="w-full"
               >
                 <Unlock className="w-4 h-4 mr-2" />
-                Decrypt Message
+                Desencriptar mensaje
               </Button>
             </div>
           </TabsContent>
@@ -162,8 +241,8 @@ export function EncryptionForm() {
         {result && (
           <div className="mt-6 p-4 bg-muted rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <Label>Result:</Label>
-              <Button variant="ghost" size="sm" onClick={handleCopy}>
+              <Label>Resultado:</Label>
+              <Button   variant="ghost" size="sm" onClick={handleCopy}>
                 <Copy className="w-4 h-4" />
               </Button>
             </div>

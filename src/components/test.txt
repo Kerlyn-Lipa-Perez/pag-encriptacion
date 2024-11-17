@@ -1,0 +1,30 @@
+const encrypt = (text: string, key: string) => {
+    let result = '';
+
+    for (let i = 0; i < text.length; i++) {
+      const charCode = text.charCodeAt(i);
+      const keyChar = key.charCodeAt(i % key.length);
+      result += String.fromCharCode(charCode ^ keyChar);
+    }
+    return btoa(result);
+  };
+  /**
+   * 
+   * @param encoded "Mensaje encriptado"
+   * @param key "LLave de desencriptación"
+   * @returns 
+   */
+  const decrypt = (encoded: string, key: string) => {
+    try {
+      const text = atob(encoded);
+      let result = '';
+      for (let i = 0; i < text.length; i++) {
+        const charCode = text.charCodeAt(i);
+        const keyChar = key.charCodeAt(i % key.length);
+        result += String.fromCharCode(charCode ^ keyChar);
+      }
+      return result;
+    } catch {
+      return 'Mensaje encriptado invalido';
+    }
+  };
