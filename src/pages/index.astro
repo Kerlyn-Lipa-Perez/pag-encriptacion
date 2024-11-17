@@ -2,9 +2,11 @@
 import '../styles/global.css'
 import Layout from '../layouts/Layout.astro';
 import { EncryptionForm } from '@/components/EncryptionForm';
+import favicon from '../../public/favicon.ico';
 ---
 
 <Layout title="Herramienta de Encriptacion y Desencriptación">
+	<link rel="shortcut icon" href="favicon.ico">
 	<main>
 		<EncryptionForm client:load />
 	</main>
