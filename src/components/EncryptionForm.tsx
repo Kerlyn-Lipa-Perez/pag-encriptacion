@@ -7,42 +7,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Lock, Unlock, Copy, Key } from 'lucide-react';
 import { Toaster } from "@/components/ui/toaster"
+import simbolos_astronomicos from '@/components/simbolos';
 // Diccionario para símbolos astronómicos
-const simbolos_astronomicos : { [key: string]: string }= {
-    'A': '☉', 'a': '☀',
-    'B': '☽', 'b': '☾',
-    'C': '♂', 'c': '⚥',
-    'D': '♀', 'd': '⚢',
-    'E': '♃', 'e': '⚡',
-    'F': '♄', 'f': '⚪',
-    'G': '♅', 'g': '⚩',
-    'H': '♆', 'h': '⚔',
-    'I': '♇', 'i': '⚕',
-    'J': '☿', 'j': '⚜',
-    'K': '♁', 'k': '⚝',
-    'L': '☊', 'l': '⚬',
-    'M': '☋', 'm': '⚘',
-    'N': '⚳', 'n': '⚴',
-    'Ñ': '⚷', 'ñ': '⚸',
-    'O': '⚵', 'o': '⚶',
-    'P': '⚷', 'p': '⚸',
-    'Q': '⚺', 'q': '⚻',
-    'R': '⚼', 'r': '⚽',
-    'S': '⛢', 's': '⛣',
-    'T': '⛤', 't': '⛥',
-    'U': '⛦', 'u': '⛧',
-    'V': '⛨', 'v': '⛩',
-    'W': '⛪', 'w': '⛰',
-    'X': '⛯', 'x': '⛮',
-    'Y': '⛬', 'y': '⛭',
-    'Z': '⛱', 'z': '⛲',
-    '0': '⛳', '1': '⛴', 
-    '2': '⛵', '3': '⛶', 
-    '4': '⛷', '5': '⛸', 
-    '6': '⛹', '7': '⛺', 
-    '8': '⛻', '9': '⛼',
-    '+': '⚝', '!': '⚡', '?': '⚜', '.': '⛾', ',': '⛿'
-}
+// const simbolos_astronomicos : { [key: string]: string }= {
+//     'A': '☉', 'a': '☀',
+//     'B': '☽', 'b': '☾',
+//     'C': '♂', 'c': '⚥',
+//     'D': '♀', ' cvd': '⚢',
+//     'E': '♃', 'e': '⚡',
+//     'F': '♄', 'f': '⚪',
+//     'G': '♅', 'g': '⚩',
+//     'H': '♆', 'h': '⚔',
+//     'I': '♇', 'i': '⚕',
+//     'J': '☿', 'j': '⚜',
+//     'K': '♁', 'k': '⚝',
+//     'L': '☊', 'l': '⚬',
+//     'M': '☋', 'm': '⚘',
+//     'N': '⚳', 'n': '⚴',
+//     'Ñ': '⚷', 'ñ': '⚸',
+//     'O': '⚵', 'o': '⚶',
+//     'P': '⚷', 'p': '⚸',
+//     'Q': '⚺', 'q': '⚻',
+//     'R': '⚼', 'r': '⚽',
+//     'S': '⛢', 's': '⛣',
+//     'T': '⛤', 't': '⛥',
+//     'U': '⛦', 'u': '⛧',
+//     'V': '⛨', 'v': '⛩',
+//     'W': '⛪', 'w': '⛰',
+//     'X': '⛯', 'x': '⛮',
+//     'Y': '⛬', 'y': '⛭',
+//     'Z': '⛱', 'z': '⛲',
+//     '0': '⛳', '1': '⛴', 
+//     '2': '⛵', '3': '⛶', 
+//     '4': '⛷', '5': '⛸', 
+//     '6': '⛹', '7': '⛺', 
+//     '8': '⛻', '9': '⛼',
+//     '+': '⚝', '!': '⚡', '?': '⚜', '.': '⛾', ',': '⛿'
+// }
 
   /**
    * 
@@ -79,7 +80,7 @@ export function EncryptionForm() {
    */
     const encrypt = (text: string, key: string) => {
     // Validar que no haya caracteres especiales
-    const invalidCharsRegex = /[^A-Za-z0-9\s]/;
+      const invalidCharsRegex = /[^A-Za-z0-9\s]/;
     if (invalidCharsRegex.test(text)) {
     // Mostrar un mensaje de toast
     toast({
@@ -104,7 +105,7 @@ export function EncryptionForm() {
     // Transformar caracteres a símbolos astronómicos usando el diccionario
     let encryptedWithSymbols = '';
     for (const char of base64Encoded) {
-      encryptedWithSymbols += simbolos_astronomicos[char] || char; // Mantener el carácter si no tiene mapeo
+      encryptedWithSymbols += simbolos_astronomicos[char] || char; 
     }
 
     return encryptedWithSymbols;
@@ -135,12 +136,14 @@ export function EncryptionForm() {
         throw new Error("La cadena transformada no es un Base64 válido");
       }
       
-      // Decode Base64 and handle URL-encoded characters
+      // Decodificar Base64 y manejar caracteres codificados en URL
       const text = decodeURIComponent(atob(base64Decoded))
       
       console.log("Texto decodificado de Base64:", text);
 
-      // Revertir operación XOR
+      // Revertir operación XOR para obtener el texto original
+      // (operación XOR es reversible, por lo que podemos aplicar la misma
+      // operación con la misma llave para obtener el texto original)
       let result = '';
       for (let i = 0; i < text.length; i++) {
         const charCode = text.charCodeAt(i);
