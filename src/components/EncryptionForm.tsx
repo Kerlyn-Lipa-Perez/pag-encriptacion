@@ -46,7 +46,7 @@ export function EncryptionForm() {
     // Validar que no haya caracteres especiales
       const invalidCharsRegex = /[^A-Za-z0-9\s]/;
     if (invalidCharsRegex.test(text)) {
-    // Mostrar un mensaje de toast
+    // Mostrar un mensaje 
     toast({
       title: "Error",
       description: "El texto contiene caracteres especiales no permitidos.",
