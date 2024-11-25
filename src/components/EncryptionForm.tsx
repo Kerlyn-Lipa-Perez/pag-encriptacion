@@ -9,26 +9,30 @@ import { Lock, Unlock, Copy, Key } from 'lucide-react';
 import { Toaster } from "@/components/ui/toaster"
 import simbolos_astronomicos from '@/components/simbolos';
 
-  /**
-   * 
-   * 
-   * 
-   */
-
 export function EncryptionForm() {
-
     const [message, setMessage] = useState('');
     const [key, setKey] = useState('');
     const [result, setResult] = useState('');
     const { toast } = useToast();
     
     const validateInput = (input: string, type: 'message' | 'key'): boolean => {
+      const forbiddenCharsRegex = /[<>/]/;
+      
+      if (forbiddenCharsRegex.test(input)) {
+        toast({
+          title: "Invalid Input",
+          description: `${type === 'message' ? 'Message' : 'Key'} No puedo contener < > or / caracteres`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
       const allowedCharsRegex = /^[a-zA-ZñÑ0-9\s.,!?+]+$/;
       
       if (!allowedCharsRegex.test(input) && input !== '') {
         toast({
-          title: "Invalid Input",
-          description: `${type === 'message' ? 'Message' : 'Key'} can only contain letters, numbers, and basic punctuation`,
+          title: "Entrada Inválida",
+          description: `${type === 'message' ? 'Message' : 'Key'} solo se puede contener letras, números`,
           variant: "destructive",
         });
         return false;
@@ -36,229 +40,211 @@ export function EncryptionForm() {
       return true;
     };
 
-    /**
-   * 
-   * @param text "Texto a encriptar"
-   * @param key  "LLave de encriptación"
-   * @returns 
-   */
+    const handleInputChange = (
+      setter: React.Dispatch<React.SetStateAction<string>>, 
+      event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const value = event.target.value.replace(/[<>/]/g, '');
+      setter(value);
+    };
+
     const encrypt = (text: string, key: string) => {
-    // Validar que no haya caracteres especiales
       const invalidCharsRegex = /[^A-Za-z0-9\s]/;
-    if (invalidCharsRegex.test(text)) {
-    // Mostrar un mensaje 
-    toast({
-      title: "Error",
-      description: "El texto contiene caracteres especiales no permitidos.",
-      duration: 3000,
-    });
-    return; // Salir de la función si hay caracteres no permitidos
-  }
-    let result = '';
-
-    // Aplicar XOR en cada carácter del texto
-    for (let i = 0; i < text.length; i++) {
-      const charCode = text.charCodeAt(i);
-      const keyChar = key.charCodeAt(i % key.length);
-      result += String.fromCharCode(charCode ^ keyChar);
-    }
-
-    // Codificar resultado en Base64
-    const base64Encoded = btoa(encodeURIComponent(result))
-
-    // Transformar caracteres a símbolos astronómicos usando el diccionario
-    let encryptedWithSymbols = '';
-    for (const char of base64Encoded) {
-      encryptedWithSymbols += simbolos_astronomicos[char] || char; 
-    }
-
-    return encryptedWithSymbols;
-  };
-
-  const decrypt = (encoded: string, key: string) => {
-    try {
-      console.log("Texto encriptado recibido:", encoded);
-
-      const reversedSimbolos = Object.fromEntries(
-        Object.entries(simbolos_astronomicos).map(([k, v]) => [v, k])
-      )
-
-      let base64Decoded = ''
-      for (const char of encoded) {
-        base64Decoded += reversedSimbolos[char] || char
-      } 
-
-      // Validar y corregir longitud para Base64
-      while (base64Decoded.length % 4 !== 0) {
-        base64Decoded += '=';
-      }
-
-      console.log("Texto transformado a Base64:", base64Decoded);
-
-      // Decodificar Base64
-      if (!/^[A-Za-z0-9+/=]*$/.test(base64Decoded)) {
-        throw new Error("La cadena transformada no es un Base64 válido");
+      if (invalidCharsRegex.test(text)) {
+        toast({
+          title: "Error",
+          description: "El texto contiene caracteres especiales no permitidos.",
+          duration: 3000,
+        });
+        return;
       }
       
-      // Decodificar Base64 y manejar caracteres codificados en URL
-      const text = decodeURIComponent(atob(base64Decoded))
-      
-      console.log("Texto decodificado de Base64:", text);
-
-      // Revertir operación XOR para obtener el texto original
-      // (operación XOR es reversible, por lo que podemos aplicar la misma
-      // operación con la misma llave para obtener el texto original)
       let result = '';
       for (let i = 0; i < text.length; i++) {
         const charCode = text.charCodeAt(i);
         const keyChar = key.charCodeAt(i % key.length);
         result += String.fromCharCode(charCode ^ keyChar);
       }
-      return result;
-    } catch (error) {
-      console.error("Error durante el descifrado:", error);
-      return 'Mensaje encriptado inválido';
-    }
-  };
 
-  /**
-   * 
-   */
-  const handleCopy = () => {
-    navigator.clipboard.writeText(result);
-    toast({
-      title: "Copiado al portapapeles",
-      description: "El texto fue copiado al portapapeles",
-    });
-  };
+      const base64Encoded = btoa(encodeURIComponent(result))
 
-  const handleSubmit = (mode: 'encrypt' | 'decrypt') => {
-    if (!message || !key) {
-      toast({
-        title: "Falta información",
-        description: "Ingrese ambos mensaje y llave.",
-        variant: "destructive",
-      });
-      return;
-    }
+      let encryptedWithSymbols = '';
+      for (const char of base64Encoded) {
+        encryptedWithSymbols += simbolos_astronomicos[char] || char; 
+      }
 
-    const result = mode === 'encrypt' ? encrypt(message, key) : decrypt(message, key);
-     setResult(result || '');
-  };
+      return encryptedWithSymbols;
+    };
 
+    const decrypt = (encoded: string, key: string) => {
+      try {
+        const reversedSimbolos = Object.fromEntries(
+          Object.entries(simbolos_astronomicos).map(([k, v]) => [v, k])
+        )
 
-  return (
+        let base64Decoded = ''
+        for (const char of encoded) {
+          base64Decoded += reversedSimbolos[char] || char
+        } 
 
-    <div className="min-h-screen bg-gradient- to-b from-background to-muted p-6 flex flex-col items-center justify-center via-blue-100">
-      <Card className="max-w-2xl mx-auto p-6 shadow-xl justify-center content-center border border-blue-200 bg-white/80 backdrop-blur-sm">
-        <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
-          Herramienta de Encriptacion y Desencriptación
-        </h1>
+        while (base64Decoded.length % 4 !== 0) {
+          base64Decoded += '=';
+        }
+
+        if (!/^[A-Za-z0-9+/=]*$/.test(base64Decoded)) {
+          throw new Error("La cadena transformada no es un Base64 válido");
+        }
+      
+        const text = decodeURIComponent(atob(base64Decoded))
         
-        <Tabs defaultValue="encrypt" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 bg-blue-50">
-            <TabsTrigger value="encrypt" className='data-[state=active]:bg-blue-600 data-[state=active]:text-white'>
-              <Lock className="w-4 h-4 mr-2" />
-              Encriptar
-            </TabsTrigger>
-            <TabsTrigger value="decrypt" className='data-[state=active]:bg-blue-600 data-[state=active]:text-white'>
-              <Unlock className="w-4 h-4 mr-2" />
-              Desencriptar
-            </TabsTrigger>
-          </TabsList>
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+          const charCode = text.charCodeAt(i);
+          const keyChar = key.charCodeAt(i % key.length);
+          result += String.fromCharCode(charCode ^ keyChar);
+        }
+        return result;
+        
+      } catch (error) {
+        console.error("Error durante el descifrado:", error);
+        return 'Mensaje encriptado inválido';
+      }
+    };
 
-          <TabsContent value="encrypt">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="message-encrypt" className="text-blue-800">Mensaje a encriptar</Label>
-                <Input
-                  id="message-encrypt"
-                  placeholder="Ingrese su mensaje secreto"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="mt-1.5 bg-white border-blue-200 focus:border-blue-400 "
-                  required
-                />
-              </div>
+    const handleCopy = () => {
+      navigator.clipboard.writeText(result);
+      toast({
+        title: "Copiado al portapapeles",
+        description: "El texto fue copiado al portapapeles",
+      });
+    };
 
-              <div>
-                <Label htmlFor="key-encrypt" className="flex items-center gap-2 text-blue-800">
-                  <Key className="w-4 h-4" />
-                  Llave de encriptacion
-                </Label>
-                <Input
-                  id="key-encrypt"
-                  placeholder="Ingrese su llave secreta"
-                  value={key}
-                  onChange={(e) => setKey(e.target.value)}
-                  className="mt-1.5 bg-white border-blue-200 focus:border-blue-400"
-                  required
-                />
-              </div>
+    const handleSubmit = (mode: 'encrypt' | 'decrypt') => {
 
-              <Button 
-                onClick={() => handleSubmit('encrypt')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
+      if (!message || !key) {
+        toast({
+          title: "Falta información",
+          description: "Ingrese ambos mensaje y llave.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const result = mode === 'encrypt' ? encrypt(message, key) : decrypt(message, key);
+      setResult(result || '');
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted p-6 flex flex-col items-center justify-center via-blue-100">
+        <Card className="max-w-2xl mx-auto p-6 shadow-xl justify-center content-center border border-blue-200 bg-white/80 backdrop-blur-sm">
+          <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
+            Herramienta de Encriptacion y Desencriptación
+          </h1>
+          
+          <Tabs defaultValue="encrypt" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-blue-50">
+              <TabsTrigger value="encrypt" className='data-[state=active]:bg-blue-600 data-[state=active]:text-white'>
                 <Lock className="w-4 h-4 mr-2" />
-                Encriptar mensaje
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="decrypt">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="message-decrypt" className="text-blue-800">Mensaje encriptado</Label>
-                <Input
-                  id="message-decrypt"
-                  placeholder="Ingrese el mensaje encriptado"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="mt-1.5 bg-white border-blue-200 focus:border-blue-400"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="key-decrypt" className="flex items-center gap-2 text-blue-800">
-                  <Key className="w-4 h-4" />
-                  Llave de desencriptación
-                </Label>
-                <Input
-                  id="key-decrypt"
-                  placeholder="Ingrese su llave secreta"
-                  value={key}
-                  onChange={(e) => setKey(e.target.value)}
-                  className="mt-1.5 bg-white border-blue-200 focus:border-blue-400"
-                />
-              </div>
-
-              <Button 
-                onClick={() => handleSubmit('decrypt')}
-                className="w-full bg-blue-700 text-white hover:bg-blue-800 "
-              >
+                Encriptar
+              </TabsTrigger>
+              <TabsTrigger value="decrypt" className='data-[state=active]:bg-blue-600 data-[state=active]:text-white'>
                 <Unlock className="w-4 h-4 mr-2" />
-                Desencriptar mensaje
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
+                Desencriptar
+              </TabsTrigger>
+            </TabsList>
 
-        {result && (
-          <div className="mt-6 p-4 bg-muted  bg-blue-50 rounded-lg border-blue-200">
-            <div className="flex justify-between items-center mb-2">
-              <Label>Resultado:</Label>
-              <Button   className="hover:bg-blue-100" variant="ghost" size="sm" onClick={handleCopy}>
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-            <p className="font-mono break-all text-blue-900">{result}</p>
-          </div>
-        )}
-      </Card>
-    </div>
-  );
+            <TabsContent value="encrypt">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="message-encrypt" className="text-blue-800">Mensaje a encriptar</Label>
+                  <Input
+                    id="message-encrypt"
+                    placeholder="Ingrese su mensaje secreto"
+                    value={message}
+                    onChange={(e) => handleInputChange(setMessage, e)}
+                    className="mt-1.5 bg-white border-blue-200 focus:border-blue-400"
+                    required
+                  />
+                </div>
 
+                <div>
+                  <Label htmlFor="key-encrypt" className="flex items-center gap-2 text-blue-800">
+                    <Key className="w-4 h-4" />
+                    Llave de encriptacion
+                  </Label>
+                  <Input
+                    id="key-encrypt"
+                    placeholder="Ingrese su llave secreta"
+                    value={key}
+                    onChange={(e) => handleInputChange(setKey, e)}
+                    className="mt-1.5 bg-white border-blue-200 focus:border-blue-400"
+                    required
+                  />
+                </div>
+
+                <Button 
+                  onClick={() => handleSubmit('encrypt')}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Encriptar mensaje
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="decrypt">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="message-decrypt" className="text-blue-800">Mensaje encriptado</Label>
+                  <Input
+                    id="message-decrypt"
+                    placeholder="Ingrese el mensaje encriptado"
+                    value={message}
+                    onChange={(e) => handleInputChange(setMessage, e)}
+                    className="mt-1.5 bg-white border-blue-200 focus:border-blue-400"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="key-decrypt" className="flex items-center gap-2 text-blue-800">
+                    <Key className="w-4 h-4" />
+                    Llave de desencriptación
+                  </Label>
+                  <Input
+                    id="key-decrypt"
+                    placeholder="Ingrese su llave secreta"
+                    value={key}
+                    onChange={(e) => handleInputChange(setKey, e)}
+                    className="mt-1.5 bg-white border-blue-200 focus:border-blue-400"
+                  />
+                </div>
+
+                <Button 
+                  onClick={() => handleSubmit('decrypt')}
+                  className="w-full bg-blue-700 text-white hover:bg-blue-800"
+                >
+                  <Unlock className="w-4 h-4 mr-2" />
+                  Desencriptar mensaje
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {result && (
+            <div className="mt-6 p-4 bg-muted bg-blue-50 rounded-lg border-blue-200">
+              <div className="flex justify-between items-center mb-2">
+                <Label>Resultado:</Label>
+                <Button className="hover:bg-blue-100" variant="ghost" size="sm" onClick={handleCopy}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="font-mono break-all text-blue-900">{result}</p>
+            </div>
+          )}
+        </Card>
+        <Toaster />
+      </div>
+    );
 }
 
 export default EncryptionForm;
