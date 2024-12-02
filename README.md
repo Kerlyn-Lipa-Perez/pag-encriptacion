@@ -7,6 +7,10 @@ Este es un proyecto web que utiliza un algoritmo perzonalizado de encriptación 
 bun install
 ```
 
+## 🚀 Iniciar el proyecto
+```sh
+bun run dev
+```
 ## 🚀 Project Structure
 
 ```text
