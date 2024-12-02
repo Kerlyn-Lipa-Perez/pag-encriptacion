@@ -9,6 +9,8 @@ import { Lock, Unlock, Copy, Key } from 'lucide-react';
 import { Toaster } from "@/components/ui/toaster"
 import simbolos_astronomicos from '@/components/simbolos';
 
+
+
 export function EncryptionForm() {
     const [message, setMessage] = useState('');
     const [key, setKey] = useState('');
@@ -16,12 +18,12 @@ export function EncryptionForm() {
     const { toast } = useToast();
     
     const validateInput = (input: string, type: 'message' | 'key'): boolean => {
-      const forbiddenCharsRegex = /[<>/]/;
+      const CharsRegex = /[<>/]/;
       
-      if (forbiddenCharsRegex.test(input)) {
+      if (CharsRegex.test(input)) {
         toast({
-          title: "Invalid Input",
-          description: `${type === 'message' ? 'Message' : 'Key'} No puedo contener < > or / caracteres`,
+          title: "Entrada invalida",
+          description: `${type === 'message' ? 'Mensaje' : 'Llave'} No puedo contener < > or / caracteres`,
           variant: "destructive",
         });
         return false;
@@ -32,7 +34,7 @@ export function EncryptionForm() {
       if (!allowedCharsRegex.test(input) && input !== '') {
         toast({
           title: "Entrada Inválida",
-          description: `${type === 'message' ? 'Message' : 'Key'} solo se puede contener letras, números`,
+          description: `${type === 'message' ? 'Mensaje' : 'LLave'} solo se puede contener letras, números`,
           variant: "destructive",
         });
         return false;
@@ -54,7 +56,7 @@ export function EncryptionForm() {
         toast({
           title: "Error",
           description: "El texto contiene caracteres especiales no permitidos.",
-          duration: 3000,
+          duration: 2000,
         });
         return;
       }
@@ -62,18 +64,24 @@ export function EncryptionForm() {
       let result = '';
       for (let i = 0; i < text.length; i++) {
         const charCode = text.charCodeAt(i);
+        console.log(charCode)
         const keyChar = key.charCodeAt(i % key.length);
+        console.log(keyChar)
         result += String.fromCharCode(charCode ^ keyChar);
+        console.log(result)
       }
 
       const base64Encoded = btoa(encodeURIComponent(result))
-
+      console.log(base64Encoded)
       let encryptedWithSymbols = '';
       for (const char of base64Encoded) {
         encryptedWithSymbols += simbolos_astronomicos[char] || char; 
       }
 
+      console.log(encryptedWithSymbols)
+
       return encryptedWithSymbols;
+      
     };
 
     const decrypt = (encoded: string, key: string) => {
